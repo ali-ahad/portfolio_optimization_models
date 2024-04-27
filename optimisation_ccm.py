@@ -1,3 +1,5 @@
+import pandas as pd
+
 class ConstantCorrelationModelOptimization:
   def __init__(self, expected_returns: list[float], standard_deviation: list[float], correlation: float, risk_free_return: float) -> None:
     self.__expected_returns = expected_returns
@@ -49,27 +51,32 @@ class ConstantCorrelationModelOptimization:
     cutoff_constant = 0.0
     cutoff_idx = 0
     
-    for idx, row in df.iterrows():
+    count = 0
+    for _, row in df.iterrows():
       cumulative_treynor_indx += (row['Expected Returns'] - self.__risk_free_return) / row['Standard Deviation']
       
-      b = idx + 1
+      b = count + 1
       cutoff_constant = (self.__corelation / (1 - self.__corelation + (b * self.__corelation))) * cumulative_treynor_indx
       
       if row['Ranks'] < cutoff_constant:
-        cutoff_idx = idx
+        cutoff_idx = count
         break
+      count += 1
+    cutoff_idx = count
       
     # at this point we will have the cutoff constant and the cutoff index
     # we will assign 0 weights to all assets from the cutoff index to the end
     # and then we will normalize the weights
     non_normalized_weights = [0] * len(self.__expected_returns)
     
+    count = 0
     for idx, row in df.iterrows():
-      if idx >= cutoff_idx:
+      if count >= cutoff_idx:
         break
       treynor_index = (row['Expected Returns'] - self.__risk_free_return) / row['Standard Deviation']
       z = (1 / ((1 - self.__corelation) * row['Standard Deviation'])) * (treynor_index - cutoff_constant)
       non_normalized_weights[idx] = z
+      count += 1
     
     sum_weights = sum(non_normalized_weights)
     return [weight / sum_weights for weight in non_normalized_weights]
