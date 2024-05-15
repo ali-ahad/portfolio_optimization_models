@@ -58,6 +58,7 @@ class ConstantCorrelationModelOptimization:
       b = count + 1
       cutoff_constant = (self.__corelation / (1 - self.__corelation + (b * self.__corelation))) * cumulative_treynor_indx
       
+      print(row['Ranks'], cutoff_constant)
       if row['Ranks'] < cutoff_constant:
         cutoff_idx = count
         break
@@ -75,9 +76,11 @@ class ConstantCorrelationModelOptimization:
         break
       treynor_index = (row['Expected Returns'] - self.__risk_free_return) / row['Standard Deviation']
       z = (1 / ((1 - self.__corelation) * row['Standard Deviation'])) * (treynor_index - cutoff_constant)
+      print(z)
       non_normalized_weights[idx] = z
       count += 1
     
     sum_weights = sum(non_normalized_weights)
-    return [weight / sum_weights for weight in non_normalized_weights]
+    print(sum_weights)
+    # return [weight / sum_weights for weight in non_normalized_weights]
     

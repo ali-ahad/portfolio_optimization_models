@@ -20,18 +20,18 @@ class MarkowitzOptimization:
     return np.dot(weights.T, np.dot(self.cov_matrix, weights))
   
   def find_tangency_portfolio_with_short_selling(self):
-    cov_inversed = np.linalg.inv(self.cov_matrix)
+    # constraints - sum of weights must be 1
+    constraints = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1})
     
-    # get a vector of risk free rate equal to the length of expected returns
-    risk_free_rate_vector = np.full(len(self.returns_list), self.risk_free_rate)
+    # initial guess - equal weights
+    w0 = np.full(len(self.returns_list), 1 / len(self.returns_list))
     
-    # get the z weights
-    z = np.matmul(cov_inversed, self.returns_list - risk_free_rate_vector)
+    # minimize the negative sharpe ratio
+    result = minimize(self.__max_sharpe_ratio_objective_function, w0, method='SLSQP', constraints=constraints)
     
-    # get the normalized weights
-    weights = z / np.sum(z)
-    
-    return weights
+    if not result.success:
+      raise Exception(result.message)
+    return result.x
   
   def find_tangency_portfolio_no_short_selling(self):
     # constraints - sum of weights must be 1
