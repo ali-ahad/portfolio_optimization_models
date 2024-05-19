@@ -33,10 +33,11 @@ class Utils:
   
   # calculate portfolio returns and risk
   @staticmethod
-  def calculate_markowitz_portfolio_risk(weights, cov_matrix):
-      risk = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
-      
-      return risk
+  def calculate_portfolio_return_and_risk(weights, returns, cov_matrix):
+    expected_return = np.dot(weights, returns)
+    risk = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
+
+    return expected_return, risk
     
   # calculate sharpe ratio
   @staticmethod
@@ -48,41 +49,21 @@ class Utils:
     portfolio_mean_return = np.dot(mean_returns , weights) #daily
 
     return portfolio_mean_return *np.sqrt(annulized_factor)
-  
-  def calculate_ccm_model_percentage_portfolio_risk(weights, constant_correlation, std_dev_list):
-    # beta values are the standard_deviation
-    beta_values = std_dev_list
-    
-    # market_variance is the constant_correlation
-    market_variance = constant_correlation
-    
-    # tau squared_list is (1- constant_correlation) * std_dev ** 2
-    tau_squared_list = [(1 - constant_correlation) * beta ** 2 for beta in beta_values]
-    squared_weights = [weight ** 2 for weight in weights]
-    
-    portfolio_beta = np.dot(weights, beta_values)
-    portfolio_beta_squared = portfolio_beta ** 2
-    portfolio_tau_squared = np.dot(squared_weights, tau_squared_list)
-  
-    portfolio_variance = (portfolio_beta_squared * market_variance) + portfolio_tau_squared
-    portfolio_risk = np.sqrt(portfolio_variance)
-    
-    return portfolio_risk
     
   @staticmethod
-  def calculate_factor_model_percentage_portfolio_risk(weights, expected_market_variance, alpha_list, beta_list, tau_list):
+  def calculate_factor_model_percentage_portfolio_return_and_risk(weights, expected_market_return, expected_market_variance, alpha_list, beta_list, tau_list):
     squared_weights = [weight ** 2 for weight in weights]
+    beta_squared = [beta ** 2 for beta in beta_list]
     tau_squared = [tau ** 2 for tau in tau_list]
 
     portfolio_alpha = np.dot(weights, beta_list)
     portfolio_beta = np.dot(weights, alpha_list)
 
-    portfolio_beta = np.dot(weights, beta_list)
-    portfolio_beta_squared = portfolio_beta ** 2
-    
+    portfolio_beta_squared = np.dot(squared_weights, beta_squared)
     portfolio_tau_squared = np.dot(squared_weights, tau_squared)
-    
+
+    expected_portfolio_return = portfolio_alpha + (portfolio_beta * expected_market_return)
     portfolio_varinace = (portfolio_beta_squared * expected_market_variance) + portfolio_tau_squared
     portfolio_risk = np.sqrt(portfolio_varinace)
-    
-    return portfolio_risk
+
+    return expected_portfolio_return, portfolio_risk

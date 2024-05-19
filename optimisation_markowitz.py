@@ -23,11 +23,14 @@ class MarkowitzOptimization:
     # constraints - sum of weights must be 1
     constraints = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1})
     
+    # bounds - avoid shorting too much
+    bounds = tuple((-5, 5) for i in range(len(self.returns_list)))
+    
     # initial guess - equal weights
     w0 = np.full(len(self.returns_list), 1 / len(self.returns_list))
     
     # minimize the negative sharpe ratio
-    result = minimize(self.__max_sharpe_ratio_objective_function, w0, method='SLSQP', constraints=constraints)
+    result = minimize(self.__max_sharpe_ratio_objective_function, w0, method='SLSQP', bounds=bounds, constraints=constraints)
     
     if not result.success:
       raise Exception(result.message)
